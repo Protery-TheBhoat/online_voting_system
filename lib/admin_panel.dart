@@ -423,13 +423,13 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
             ),
             const SizedBox(height: 32),
             const Text(
-              'Election not ended',
+              'Election not Ended',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             const Text(
-              'View progress at dashboard tab',
+              'View progress at Dashboard tab',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w500),
             ),
