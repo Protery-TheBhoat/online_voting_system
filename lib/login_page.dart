@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'package:local_auth/local_auth.dart';
-=======
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
 import 'auth_service.dart';
 import 'registration_page.dart';
 import 'admin_panel.dart';
@@ -21,15 +18,11 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   final _authService = AuthService();
   final _votingService = VotingService();
-<<<<<<< HEAD
   final LocalAuthentication auth = LocalAuthentication();
-=======
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
   String _selectedRole = 'Student';
   bool _isPasswordVisible = false;
   bool _isLoading = false;
 
-<<<<<<< HEAD
   Future<bool> _authenticateBiometrically() async {
     try {
       final bool canCheckBiometrics = await auth.canCheckBiometrics;
@@ -109,8 +102,8 @@ class _LoginPageState extends State<LoginPage> {
         width: 110,
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A73E8).withOpacity(0.05),
-          border: Border.all(color: const Color(0xFF1A73E8).withOpacity(0.1)),
+          color: const Color(0xFF1A73E8).withValues(alpha: 0.05),
+          border: Border.all(color: const Color(0xFF1A73E8).withValues(alpha: 0.1)),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -124,8 +117,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-=======
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
   Future<void> _handleLogin() async {
     final id = _idController.text.trim();
     final password = _passwordController.text;
@@ -141,7 +132,6 @@ class _LoginPageState extends State<LoginPage> {
       if (_selectedRole == 'Student') {
         final success = await _authService.login(id, password);
         if (success) {
-<<<<<<< HEAD
           final authenticated = await _authenticateBiometrically();
           if (authenticated) {
             _navigateToDashboard('Poll Station');
@@ -149,9 +139,6 @@ class _LoginPageState extends State<LoginPage> {
             await _authService.logout();
             _showSnackBar('Security verification failed or cancelled', Colors.orange);
           }
-=======
-          _navigateToDashboard('Poll Station');
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
         } else {
           _showSnackBar('Invalid student credentials', Colors.redAccent);
         }
@@ -159,18 +146,11 @@ class _LoginPageState extends State<LoginPage> {
         final success = await _authService.adminLogin(id, password);
         if (success) {
           if (!mounted) return;
-<<<<<<< HEAD
-=======
-          // Check if voting session is configured
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
-          if (_votingService.startTime != null && _votingService.endTime != null) {
-            _navigateToDashboard('Admin Results Dashboard');
-          } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminPanel()),
-            );
-          }
+          // Always navigate to AdminPanel to ensure Management tab is accessible
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const AdminPanel()),
+          );
         } else {
           _showSnackBar('Invalid admin credentials', Colors.redAccent);
         }
@@ -237,11 +217,7 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 12),
                       Text(
                         'Your Choice, Protected & Counted',
-<<<<<<< HEAD
-                        style: TextStyle(fontSize: 18, color: Colors.white.withOpacity(0.8)),
-=======
                         style: TextStyle(fontSize: 18, color: Colors.white.withValues(alpha: 0.8)),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
                       ),
                     ],
                   ),
@@ -263,17 +239,10 @@ class _LoginPageState extends State<LoginPage> {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-<<<<<<< HEAD
-                            color: const Color(0xFF1A73E8).withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.how_to_vote_rounded, color: Color(0xFF1A73E8), size: 32),
-=======
                             color: const Color(0xFF1A73E8).withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.lock_outline_rounded, color: Color(0xFF1A73E8), size: 32),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
+                          child: const Icon(Icons.how_to_vote_rounded, color: Color(0xFF1A73E8), size: 32),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -343,7 +312,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 32),
-<<<<<<< HEAD
                       SizedBox(
                         width: double.infinity,
                         height: 52,
@@ -359,13 +327,6 @@ class _LoginPageState extends State<LoginPage> {
                             ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                             : const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
-=======
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _handleLogin,
-                        child: _isLoading 
-                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : const Text('Login'),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
                       ),
                       if (_selectedRole == 'Student') ...[
                         const SizedBox(height: 24),
@@ -406,11 +367,7 @@ class _LoginPageState extends State<LoginPage> {
           color: isSelected ? const Color(0xFF1A73E8) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: isSelected ? const Color(0xFF1A73E8) : Colors.grey.shade300),
-<<<<<<< HEAD
-          boxShadow: isSelected ? [BoxShadow(color: const Color(0xFF1A73E8).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
-=======
           boxShadow: isSelected ? [BoxShadow(color: const Color(0xFF1A73E8).withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
         ),
         child: Column(
           children: [

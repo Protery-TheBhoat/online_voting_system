@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'package:local_auth/local_auth.dart';
 import 'login_page.dart';
 import 'auth_service.dart';
 import 'voting_service.dart';
-=======
-import 'login_page.dart';
-import 'auth_service.dart';
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
+import 'admin_panel.dart';
 import 'main.dart';
 
 class SplashPage extends StatefulWidget {
@@ -22,11 +18,8 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   final _authService = AuthService();
-<<<<<<< HEAD
   final _votingService = VotingService();
   final LocalAuthentication auth = LocalAuthentication();
-=======
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
 
   @override
   void initState() {
@@ -48,7 +41,6 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     _handleRouting();
   }
 
-<<<<<<< HEAD
   Future<bool> _authenticateBiometrically() async {
     try {
       final bool canCheckBiometrics = await auth.canCheckBiometrics;
@@ -57,7 +49,6 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
       if (!canCheckBiometrics && !isDeviceSupported) return true;
 
       final List<BiometricType> availableBiometrics = await auth.getAvailableBiometrics();
-      
       bool hasFace = availableBiometrics.contains(BiometricType.face);
       bool hasFingerprint = availableBiometrics.contains(BiometricType.fingerprint);
 
@@ -97,7 +88,6 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
             actionsPadding: const EdgeInsets.only(bottom: 24),
           ),
         );
-        
         if (selectedMethod == null) return false;
       } else if (hasFace) {
         selectedMethod = 'Face ID';
@@ -135,8 +125,6 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     );
   }
 
-=======
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
   @override
   void dispose() {
     _controller.dispose();
@@ -144,21 +132,14 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   }
 
   void _handleRouting() async {
-<<<<<<< HEAD
     await Future.wait([
       _authService.init(),
       _votingService.init(),
-=======
-    // Initialize session and wait for branding
-    await Future.wait([
-      _authService.init(),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
       Future.delayed(const Duration(seconds: 3)),
     ]);
 
     if (!mounted) return;
 
-<<<<<<< HEAD
     Widget nextScreen = const LoginPage();
     
     if (_authService.currentUser != null) {
@@ -170,16 +151,8 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
         nextScreen = const LoginPage();
       }
     } else if (_authService.isAdmin) {
-      nextScreen = const VotingDashboard(title: 'Admin Dashboard');
-=======
-    Widget nextScreen;
-    if (_authService.currentUser != null) {
-      nextScreen = const VotingDashboard(title: 'Poll Station');
-    } else if (_authService.isAdmin) {
-      nextScreen = const VotingDashboard(title: 'Admin Dashboard');
-    } else {
-      nextScreen = const LoginPage();
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
+      // Ensure admins go to AdminPanel so the Management tab is present
+      nextScreen = const AdminPanel();
     }
 
     if (!mounted) return;
@@ -219,16 +192,12 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-<<<<<<< HEAD
-                    color: Colors.white.withOpacity(0.15),
-=======
                     color: Colors.white.withValues(alpha: 0.15),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.how_to_vote_rounded,
-                    size: 100,
+                    size: 150,
                     color: Colors.white,
                   ),
                 ),
@@ -247,11 +216,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                   'Secure • Transparent • Reliable',
                   style: TextStyle(
                     fontSize: 16,
-<<<<<<< HEAD
-                    color: Colors.white.withOpacity(0.8),
-=======
                     color: Colors.white.withValues(alpha: 0.8),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
                     fontWeight: FontWeight.w300,
                     letterSpacing: 1.5,
                   ),
@@ -305,7 +270,7 @@ class _ThreeDotsIndicatorState extends State<ThreeDotsIndicator>
             double value = (_controller.value + delay) % 1.0;
             double opacity = 0.3 + (0.7 * (1.0 - (value - 0.5).abs() * 2));
             double scale = 0.8 + (0.4 * (1.0 - (value - 0.5).abs() * 2));
-            
+
             return Transform.scale(
               scale: scale,
               child: Container(
@@ -313,11 +278,7 @@ class _ThreeDotsIndicatorState extends State<ThreeDotsIndicator>
                 width: 10,
                 height: 10,
                 decoration: BoxDecoration(
-<<<<<<< HEAD
-                  color: Colors.white.withOpacity(opacity.clamp(0.3, 1.0)),
-=======
                   color: Colors.white.withValues(alpha: opacity.clamp(0.3, 1.0)),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
                   shape: BoxShape.circle,
                 ),
               ),

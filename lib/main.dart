@@ -97,11 +97,7 @@ class _VotingDashboardState extends State<VotingDashboard> {
   }
 
   void _showWinnerAnnouncement() {
-<<<<<<< HEAD
     _showSnackBar('Voting has officially ended! Final results are now being announced.', Colors.green.shade800);
-=======
-    _showSnackBar('Voting has officially ended! Final results are now being announced.', Colors.blue.shade800);
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
     setState(() {
       _selectedIndex = 0;
     });
@@ -120,11 +116,7 @@ class _VotingDashboardState extends State<VotingDashboard> {
 
     setState(() {
       _votingService.castVotes(_selectedCandidates);
-<<<<<<< HEAD
       _authService.syncUserVote();
-=======
-      _authService.currentUser?.hasVoted = true;
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
       _selectedCandidates.clear();
       _selectedIndex = 0;
     });
@@ -240,19 +232,11 @@ class _VotingDashboardState extends State<VotingDashboard> {
           ] else if (isVotingEnded) ...[
             const Row(
               children: [
-<<<<<<< HEAD
                 Icon(Icons.emoji_events_outlined, color: Colors.green),
                 SizedBox(width: 8),
                 Text(
                   'Final Election Winners', 
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-=======
-                Icon(Icons.emoji_events_outlined, color: Colors.blue),
-                SizedBox(width: 8),
-                Text(
-                  'Final Election Winners', 
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
                 ),
               ],
             ),
@@ -402,11 +386,7 @@ class _VotingDashboardState extends State<VotingDashboard> {
       color: const Color(0xFFC0C0C0), 
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-<<<<<<< HEAD
         side: const BorderSide(color: Colors.green, width: 1),
-=======
-        side: const BorderSide(color: Colors.blue, width: 1),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
       ),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -416,13 +396,8 @@ class _VotingDashboardState extends State<VotingDashboard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-<<<<<<< HEAD
                 Text(category.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue)),
                 const Icon(Icons.workspace_premium, color: Colors.green),
-=======
-                Text(category, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue)),
-                const Icon(Icons.workspace_premium, color: Colors.blue),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
               ],
             ),
             const SizedBox(height: 16),
@@ -433,11 +408,7 @@ class _VotingDashboardState extends State<VotingDashboard> {
                 padding: const EdgeInsets.symmetric(vertical: 4.0),
                 child: Row(
                   children: [
-<<<<<<< HEAD
                     const Icon(Icons.check_circle, color: Colors.green, size: 20),
-=======
-                    const Icon(Icons.check_circle, color: Colors.blue, size: 20),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -445,11 +416,7 @@ class _VotingDashboardState extends State<VotingDashboard> {
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
-<<<<<<< HEAD
                     Text('${w.votes} votes', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
-=======
-                    Text('${w.votes} votes', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
                   ],
                 ),
               )),

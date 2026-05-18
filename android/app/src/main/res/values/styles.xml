@@ -5,12 +5,8 @@
         <item name="android:windowBackground">@drawable/launch_background</item>
 
         <!-- Android 12+ Splash Screen API -->
-<<<<<<< HEAD
         <!-- Removed logo from native splash to avoid duplication with Flutter splash -->
         <item name="android:windowSplashScreenAnimatedIcon" xmlns:android="http://schemas.android.com/apk/res/android">@android:color/transparent</item>
-=======
-        <item name="android:windowSplashScreenAnimatedIcon" xmlns:android="http://schemas.android.com/apk/res/android">@drawable/ic_ballot_box</item>
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
         <item name="android:windowSplashScreenBackground" xmlns:android="http://schemas.android.com/apk/res/android">@color/splash_color</item>
     </style>
 

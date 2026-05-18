@@ -31,15 +31,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
       return;
     }
 
-<<<<<<< HEAD
     // Password validation: at least 4 characters
     if (password.length < 4) {
       _showSnackBar('Password must be at least 4 characters long', Colors.redAccent);
       return;
     }
 
-=======
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
     if (_authService.register(regNum, password)) {
       _showSnackBar('Registration successful! Please login.', Colors.green);
       Navigator.pop(context);
@@ -87,11 +84,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           if (MediaQuery.of(context).size.width > 800)
             Expanded(
               child: Container(
-<<<<<<< HEAD
-                color: const Color(0xFF34A853),
-=======
                 color: const Color(0xFF34A853), // Using green for registration to distinguish from login
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -105,11 +98,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       const SizedBox(height: 12),
                       Text(
                         'Register today to cast your secure vote.',
-<<<<<<< HEAD
-                        style: TextStyle(fontSize: 18, color: Colors.white.withOpacity(0.8)),
-=======
                         style: TextStyle(fontSize: 18, color: Colors.white.withValues(alpha: 0.8)),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
                       ),
                     ],
                   ),
@@ -130,11 +119,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-<<<<<<< HEAD
-                          color: const Color(0xFF34A853).withOpacity(0.1),
-=======
                           color: const Color(0xFF34A853).withValues(alpha: 0.1),
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.how_to_reg_rounded, color: Color(0xFF34A853), size: 32),
@@ -174,10 +159,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         decoration: InputDecoration(
                           labelText: 'Password',
                           prefixIcon: const Icon(Icons.lock_outline_rounded),
-<<<<<<< HEAD
                           helperText: 'At least 4 characters',
-=======
->>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
                           filled: true,
                           fillColor: const Color(0xFFF8F9FA),
                           border: OutlineInputBorder(
