@@ -27,16 +27,71 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+<<<<<<< HEAD
     _mgmtTabController = TabController(length: 2, vsync: this);
     
     // Removed auto-clear session logic. Results will persist until manually reset.
     _updateSubscription = _votingService.onUpdate.listen((_) {
       if (mounted) {
+=======
+    // Sub-tabs for Management: Candidates and Poll Hub
+    _mgmtTabController = TabController(length: 2, vsync: this);
+    
+    // Auto-clear session if it ended before opening the panel
+    if (_votingService.isVotingEnded) {
+      _votingService.clearSession();
+    }
+
+    _updateSubscription = _votingService.onUpdate.listen((_) {
+      if (mounted) {
+        final currentlyEnded = _votingService.isVotingEnded;
+
+        if (currentlyEnded) {
+          // Requirement: When election ends, management should be reopened empty and fresh
+          _votingService.clearSession();
+          setState(() {
+            _tempStart = null;
+            _tempEnd = null;
+            _mainTabIndex = 1; // Reopen Management tab at the bottom
+          });
+          _mgmtTabController.animateTo(0); // Set to first sub-tab (Candidates)
+          _showSessionEndAlert();
+        }
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
         setState(() {});
       }
     });
   }
 
+<<<<<<< HEAD
+=======
+  void _showSessionEndAlert() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Row(
+          children: [
+            Icon(Icons.auto_awesome_rounded, color: Colors.blueAccent),
+            SizedBox(width: 12),
+            Text('Session Reset'),
+          ],
+        ),
+        content: const Text('The election has ended. The management panel has been reset for a fresh session.'),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
   @override
   void dispose() {
     _updateSubscription?.cancel();
@@ -46,6 +101,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     super.dispose();
   }
 
+<<<<<<< HEAD
   void _handleResetSession() {
     showDialog(
       context: context,
@@ -72,6 +128,8 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     );
   }
 
+=======
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
   void _publishSlip() {
     if (_tempStart == null || _tempEnd == null) {
       _showSnackBar('Please set election duration in Poll Hub', Colors.orange);
@@ -94,6 +152,10 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
 
     _votingService.publishChanges(_tempStart, _tempEnd);
     
+<<<<<<< HEAD
+=======
+    // Requirement: Show "Slip published, View progress at dashboard"
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -127,7 +189,11 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
               ),
               onPressed: () {
                 Navigator.pop(context);
+<<<<<<< HEAD
                 setState(() => _mainTabIndex = 0); 
+=======
+                setState(() => _mainTabIndex = 0); // Switch to Dashboard tab at bottom
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
               },
               child: const Text('Go to Dashboard'),
             ),
@@ -163,12 +229,15 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
           style: const TextStyle(color: Color(0xFF1A73E8), fontWeight: FontWeight.w900, letterSpacing: 1.2, fontSize: 18),
         ),
         actions: [
+<<<<<<< HEAD
           if (_mainTabIndex == 1 && _votingService.isPublished)
             IconButton(
               icon: const Icon(Icons.refresh_rounded, color: Colors.orange),
               tooltip: 'Reset for New Election',
               onPressed: _handleResetSession,
             ),
+=======
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
             onPressed: () async {
@@ -235,6 +304,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
           _buildElectionPeriodCard(),
           const SizedBox(height: 32),
           if (isPublished) ...[
+<<<<<<< HEAD
             Row(
               children: [
                 Icon(isVotingEnded ? Icons.emoji_events_rounded : Icons.analytics_rounded, color: isVotingEnded ? Colors.black : const Color(0xFF1A73E8)),
@@ -243,13 +313,24 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                   isVotingEnded ? 'Final Election Winners' : 'Live Results Progress', 
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isVotingEnded ? Colors.black : Colors.black87)
                 ),
+=======
+            const Row(
+              children: [
+                Icon(Icons.analytics_rounded, color: Color(0xFF1A73E8)),
+                SizedBox(width: 12),
+                Text('Live Results Progress', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
               ],
             ),
             const SizedBox(height: 20),
             if (_votingService.categoryList.isEmpty)
               const Center(child: Text('No categories defined.'))
             else
+<<<<<<< HEAD
               ..._votingService.categoryList.map((cat) => isVotingEnded ? _buildWinnerCard(cat) : _buildLiveProgressCard(cat)),
+=======
+              ..._votingService.categoryList.map((cat) => _buildLiveProgressCard(cat)),
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
           ] else
             _buildEmptyState(Icons.dashboard_customize_outlined, 'Dashboard Idle', 'Configure and publish an election slip in the Management tab.'),
         ],
@@ -266,11 +347,15 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
       color = Colors.green;
       text = 'VOTING IS LIVE';
       icon = Icons.sensors_rounded;
+<<<<<<< HEAD
     } else if (ended) {
       color = Colors.blue;
       text = 'VOTING ENDED';
       icon = Icons.emoji_events;
     } else if (published) {
+=======
+    } else if (published && !ended) {
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
       color = Colors.blue;
       text = 'SESSION SCHEDULED';
       icon = Icons.schedule_rounded;
@@ -297,7 +382,11 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
               children: [
                 Text(text, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 0.5)),
                 const SizedBox(height: 4),
+<<<<<<< HEAD
                 Text(published ? (ended ? 'Election results archived' : 'Election process in progress') : 'Awaiting session configuration.', style: TextStyle(color: Colors.grey.shade600)),
+=======
+                Text(published ? 'Election process in progress' : 'Awaiting session configuration.', style: TextStyle(color: Colors.grey.shade600)),
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
               ],
             ),
           ),
@@ -306,6 +395,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     );
   }
 
+<<<<<<< HEAD
   Widget _buildWinnerCard(String category) {
     final winners = _votingService.getWinnersByCategory(category);
     
@@ -355,6 +445,8 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     );
   }
 
+=======
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
   Widget _buildElectionPeriodCard() {
     return Card(
       elevation: 0,
@@ -452,6 +544,10 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     bool isVotingActive = _votingService.isVotingActive;
 
     if (isVotingActive) {
+<<<<<<< HEAD
+=======
+      // Requirement: Disable access during active election with specific message
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(40.0),

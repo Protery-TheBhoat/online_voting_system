@@ -1,6 +1,9 @@
 import 'dart:async';
+<<<<<<< HEAD
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+=======
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
 import 'candidate.dart';
 
 class VotingService {
@@ -8,6 +11,10 @@ class VotingService {
   factory VotingService() => _instance;
   VotingService._internal();
 
+<<<<<<< HEAD
+=======
+  // Start with empty lists as requested
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
   final List<Candidate> _candidates = [];
   final List<String> _categories = [];
 
@@ -42,6 +49,7 @@ class VotingService {
 
   Set<String> get categories => _categories.toSet();
 
+<<<<<<< HEAD
   Future<void> init() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -121,6 +129,11 @@ class VotingService {
     if (!_categories.contains(category)) {
       _categories.add(category);
       _persist();
+=======
+  void addCategory(String category) {
+    if (!_categories.contains(category)) {
+      _categories.add(category);
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
       _updateController.add(null);
     }
   }
@@ -128,7 +141,10 @@ class VotingService {
   void removeCategory(String category) {
     _categories.remove(category);
     _candidates.removeWhere((c) => c.category == category);
+<<<<<<< HEAD
     _persist();
+=======
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
     _updateController.add(null);
   }
 
@@ -172,13 +188,19 @@ class VotingService {
   void addCandidate(String name, String category) {
     final id = DateTime.now().millisecondsSinceEpoch.toString();
     _candidates.add(Candidate(id: id, name: name, category: category));
+<<<<<<< HEAD
     _persist();
+=======
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
     _updateController.add(null);
   }
 
   void removeCandidate(String id) {
     _candidates.removeWhere((c) => c.id == id);
+<<<<<<< HEAD
     _persist();
+=======
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
     _updateController.add(null);
   }
 
@@ -187,7 +209,10 @@ class VotingService {
     if (index != -1) {
       final oldVotes = _candidates[index].votes;
       _candidates[index] = Candidate(id: id, name: newName, category: newCategory, votes: oldVotes);
+<<<<<<< HEAD
       _persist();
+=======
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
       _updateController.add(null);
     }
   }
@@ -197,7 +222,10 @@ class VotingService {
     _endTime = end;
     _isPublished = true;
     _scheduleAutoRefresh();
+<<<<<<< HEAD
     _persist();
+=======
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
     _updateController.add(null);
   }
 
@@ -209,7 +237,10 @@ class VotingService {
         _candidates[index].votes++;
       }
     });
+<<<<<<< HEAD
     _persist();
+=======
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
     _updateController.add(null);
   }
 
@@ -220,7 +251,10 @@ class VotingService {
     _endTime = null;
     _isPublished = false;
     _refreshTimer?.cancel();
+<<<<<<< HEAD
     _persist();
+=======
+>>>>>>> 5d074f00a8e499b2509714de8876352566b6470d
     _updateController.add(null);
   }
 }
