@@ -192,7 +192,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: Colors.white.withOpacity(0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -216,7 +216,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                   'Secure • Transparent • Reliable',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: Colors.white.withOpacity(0.8),
                     fontWeight: FontWeight.w300,
                     letterSpacing: 1.5,
                   ),
@@ -278,7 +278,7 @@ class _ThreeDotsIndicatorState extends State<ThreeDotsIndicator>
                 width: 10,
                 height: 10,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: opacity.clamp(0.3, 1.0)),
+                  color: Colors.white.withOpacity(opacity.clamp(0.3, 1.0)),
                   shape: BoxShape.circle,
                 ),
               ),

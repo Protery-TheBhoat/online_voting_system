@@ -94,7 +94,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                   child: Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1A73E8).withValues(alpha: 0.08),
+                      color: const Color(0xFF1A73E8).withOpacity(0.08),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.admin_panel_settings_rounded, color: Color(0xFF1A73E8), size: 64),
@@ -167,7 +167,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     elevation: 8,
-                    shadowColor: const Color(0xFF1A73E8).withValues(alpha: 0.3),
+                    shadowColor: const Color(0xFF1A73E8).withOpacity(0.3),
                   ),
                   child: _isLoading 
                     ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))

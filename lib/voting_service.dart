@@ -63,6 +63,10 @@ class VotingService {
             id: item['id'],
             name: item['name'],
             category: item['category'],
+            program: item['program'] ?? '',
+            level: item['level'] ?? '',
+            academicYear: item['academicYear'] ?? '',
+            imagePath: item['imagePath'],
             votes: item['votes'] ?? 0,
           ));
         }
@@ -95,6 +99,10 @@ class VotingService {
         'id': c.id,
         'name': c.name,
         'category': c.category,
+        'program': c.program,
+        'level': c.level,
+        'academicYear': c.academicYear,
+        'imagePath': c.imagePath,
         'votes': c.votes,
       }).toList();
       await prefs.setString('v_candidates', json.encode(candidatesData));
@@ -169,9 +177,17 @@ class VotingService {
     }
   }
 
-  void addCandidate(String name, String category) {
+  void addCandidate(String name, String category, String program, String level, String academicYear, String? imagePath) {
     final id = DateTime.now().millisecondsSinceEpoch.toString();
-    _candidates.add(Candidate(id: id, name: name, category: category));
+    _candidates.add(Candidate(
+      id: id, 
+      name: name, 
+      category: category, 
+      program: program, 
+      level: level, 
+      academicYear: academicYear,
+      imagePath: imagePath
+    ));
     _persist();
     _updateController.add(null);
   }
@@ -182,11 +198,20 @@ class VotingService {
     _updateController.add(null);
   }
 
-  void updateCandidate(String id, String newName, String newCategory) {
+  void updateCandidate(String id, String newName, String newCategory, String newProgram, String newLevel, String newAcademicYear, String? newImagePath) {
     final index = _candidates.indexWhere((c) => c.id == id);
     if (index != -1) {
       final oldVotes = _candidates[index].votes;
-      _candidates[index] = Candidate(id: id, name: newName, category: newCategory, votes: oldVotes);
+      _candidates[index] = Candidate(
+        id: id, 
+        name: newName, 
+        category: newCategory, 
+        program: newProgram, 
+        level: newLevel, 
+        academicYear: newAcademicYear,
+        imagePath: newImagePath, 
+        votes: oldVotes
+      );
       _persist();
       _updateController.add(null);
     }

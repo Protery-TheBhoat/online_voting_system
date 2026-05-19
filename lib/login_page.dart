@@ -102,8 +102,8 @@ class _LoginPageState extends State<LoginPage> {
         width: 110,
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A73E8).withValues(alpha: 0.05),
-          border: Border.all(color: const Color(0xFF1A73E8).withValues(alpha: 0.1)),
+          color: const Color(0xFF1A73E8).withOpacity(0.05),
+          border: Border.all(color: const Color(0xFF1A73E8).withOpacity(0.1)),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -217,7 +217,7 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 12),
                       Text(
                         'Your Choice, Protected & Counted',
-                        style: TextStyle(fontSize: 18, color: Colors.white.withValues(alpha: 0.8)),
+                        style: TextStyle(fontSize: 18, color: Colors.white.withOpacity(0.8)),
                       ),
                     ],
                   ),
@@ -239,7 +239,7 @@ class _LoginPageState extends State<LoginPage> {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1A73E8).withValues(alpha: 0.1),
+                            color: const Color(0xFF1A73E8).withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.how_to_vote_rounded, color: Color(0xFF1A73E8), size: 32),
@@ -367,7 +367,7 @@ class _LoginPageState extends State<LoginPage> {
           color: isSelected ? const Color(0xFF1A73E8) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: isSelected ? const Color(0xFF1A73E8) : Colors.grey.shade300),
-          boxShadow: isSelected ? [BoxShadow(color: const Color(0xFF1A73E8).withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+          boxShadow: isSelected ? [BoxShadow(color: const Color(0xFF1A73E8).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
         ),
         child: Column(
           children: [

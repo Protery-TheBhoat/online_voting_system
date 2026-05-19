@@ -3,6 +3,8 @@ import 'voting_service.dart';
 import 'auth_service.dart';
 import 'candidate.dart';
 import 'dart:async';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class AdminPanel extends StatefulWidget {
   const AdminPanel({super.key});
@@ -20,6 +22,12 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
 
   final _nameController = TextEditingController();
   final _categoryController = TextEditingController();
+  final _programController = TextEditingController();
+  final _levelController = TextEditingController();
+  final _yearController = TextEditingController();
+  
+  String? _selectedImagePath;
+  final ImagePicker _picker = ImagePicker();
   
   DateTime? _tempStart;
   DateTime? _tempEnd;
@@ -42,7 +50,19 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     _mgmtTabController.dispose();
     _nameController.dispose();
     _categoryController.dispose();
+    _programController.dispose();
+    _levelController.dispose();
+    _yearController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage(StateSetter setState) async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _selectedImagePath = image.path;
+      });
+    }
   }
 
   void _handleResetSession() {
@@ -105,7 +125,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1), 
+                color: Colors.blue.withOpacity(0.1), 
                 shape: BoxShape.circle
               ),
               child: const Icon(Icons.rocket_launch_rounded, size: 64, color: Colors.blueAccent),
@@ -189,7 +209,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, -4))],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, -4))],
         ),
         child: BottomNavigationBar(
           currentIndex: _mainTabIndex,
@@ -280,13 +300,13 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
             child: Icon(icon, color: color, size: 32),
           ),
           const SizedBox(width: 20),
@@ -307,11 +327,13 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
 
   Widget _buildWinnerCard(String category) {
     final winners = _votingService.getWinnersByCategory(category);
+    final candidates = _votingService.getCandidatesByCategory(category);
+    final totalVotes = candidates.fold(0, (sum, c) => sum + c.votes);
     
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
       elevation: 0,
-      color: const Color(0xFFC0C0C0).withValues(alpha: 0.5),
+      color: const Color(0xFFC0C0C0).withOpacity(0.5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
         side: const BorderSide(color: Colors.green, width: 1.5),
@@ -332,22 +354,46 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
             if (winners.isEmpty)
               const Text('No votes cast for this category', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.black54))
             else
-              ...winners.map((w) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle, color: Colors.green, size: 24),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        w.name,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ...winners.map((w) {
+                final percentage = totalVotes == 0 ? 0.0 : (w.votes / totalVotes) * 100;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.green, size: 24),
+                      const SizedBox(width: 12),
+                      CircleAvatar(
+                        radius: 35,
+                        backgroundColor: Colors.white,
+                        backgroundImage: w.imagePath != null ? FileImage(File(w.imagePath!)) : null,
+                        child: w.imagePath == null ? Text(w.name[0].toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24)) : null,
                       ),
-                    ),
-                    Text('${w.votes} votes', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 16)),
-                  ],
-                ),
-              )),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              w.name,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            Text(w.program, style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                            Text('Level ${w.level}', style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                            Text(w.academicYear, style: const TextStyle(fontSize: 13, color: Colors.blueAccent, fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${w.votes} votes (${percentage.toStringAsFixed(1)}%)',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.green),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text('${percentage.toStringAsFixed(0)}%', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 18)),
+                    ],
+                  ),
+                );
+              }),
           ],
         ),
       ),
@@ -364,7 +410,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: const Color(0xFF1A73E8).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(color: const Color(0xFF1A73E8).withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
               child: const Icon(Icons.calendar_today_rounded, color: Color(0xFF1A73E8)),
             ),
             const SizedBox(width: 16),
@@ -415,18 +461,44 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
             else
               ...candidates.map((c) {
                 final double ratio = maxVotes == 0 ? 0 : c.votes / maxVotes;
+                final double percentage = totalVotes == 0 ? 0 : (c.votes / totalVotes) * 100;
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
+                  padding: const EdgeInsets.only(bottom: 24.0),
                   child: Column(
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(c.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                          Text('${c.votes} votes', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                          CircleAvatar(
+                            radius: 35,
+                            backgroundColor: const Color(0xFF1A73E8).withOpacity(0.1),
+                            backgroundImage: c.imagePath != null ? FileImage(File(c.imagePath!)) : null,
+                            child: c.imagePath == null ? Text(c.name[0].toUpperCase(), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)) : null,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(c.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                                Text(c.program, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                                Text('Level ${c.level}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                Text(c.academicYear, style: const TextStyle(fontSize: 12, color: Colors.blueAccent, fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 4),
+                                Text('${c.votes} votes', style: const TextStyle(fontSize: 12, color: Colors.blueAccent, fontWeight: FontWeight.w500)),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('${percentage.toStringAsFixed(1)}%', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A73E8), fontSize: 16)),
+                              Text('${c.votes} votes', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                            ],
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: LinearProgressIndicator(
@@ -459,12 +531,12 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
           children: [
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), shape: BoxShape.circle),
               child: const Icon(Icons.lock_person_rounded, size: 80, color: Colors.orange),
             ),
             const SizedBox(height: 32),
             const Text(
-              'Election currently Live',
+              'Election active',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
@@ -572,7 +644,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
         initiallyExpanded: true,
         leading: Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: const Color(0xFF1A73E8).withValues(alpha: 0.1), shape: BoxShape.circle),
+          decoration: BoxDecoration(color: const Color(0xFF1A73E8).withOpacity(0.1), shape: BoxShape.circle),
           child: const Icon(Icons.folder_shared_rounded, color: Color(0xFF1A73E8), size: 20),
         ),
         title: Text(category, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -615,30 +687,46 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
   Widget _buildCandidateItem(Candidate c) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFFF8F9FF),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: CircleAvatar(
-          backgroundColor: const Color(0xFF1A73E8).withValues(alpha: 0.1),
-          child: Text(c.name[0].toUpperCase(), style: const TextStyle(color: Color(0xFF1A73E8), fontWeight: FontWeight.bold)),
-        ),
-        title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, color: Colors.blueGrey, size: 20),
-              onPressed: () => _showEditCandidateDialog(c),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 35,
+            backgroundColor: const Color(0xFF1A73E8).withOpacity(0.1),
+            backgroundImage: c.imagePath != null ? FileImage(File(c.imagePath!)) : null,
+            child: c.imagePath == null ? Text(c.name[0].toUpperCase(), style: const TextStyle(color: Color(0xFF1A73E8), fontWeight: FontWeight.bold, fontSize: 24)) : null,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 4),
+                Text(c.program, style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                Text('Level ${c.level}', style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                Text(c.academicYear, style: const TextStyle(fontSize: 13, color: Colors.blueAccent, fontWeight: FontWeight.w500)),
+              ],
             ),
-            IconButton(
-              icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent, size: 20),
-              onPressed: () => setState(() => _votingService.removeCandidate(c.id)),
-            ),
-          ],
-        ),
+          ),
+          Column(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, color: Colors.blueGrey, size: 20),
+                onPressed: () => _showEditCandidateDialog(c),
+              ),
+              IconButton(
+                icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent, size: 20),
+                onPressed: () => setState(() => _votingService.removeCandidate(c.id)),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -684,14 +772,14 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           color: Colors.white, 
           borderRadius: BorderRadius.circular(24), 
-          border: Border.all(color: const Color(0xFF1A73E8).withValues(alpha: 0.1)), 
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 12)]
+          border: Border.all(color: const Color(0xFF1A73E8).withOpacity(0.1)), 
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12)]
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(16), 
-              decoration: BoxDecoration(color: const Color(0xFF1A73E8).withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)), 
+              decoration: BoxDecoration(color: const Color(0xFF1A73E8).withOpacity(0.05), borderRadius: BorderRadius.circular(16)), 
               child: const Icon(Icons.timer_outlined, color: Color(0xFF1A73E8), size: 28)
             ),
             const SizedBox(width: 20),
@@ -724,9 +812,9 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.blue.withValues(alpha: 0.05),
+            color: Colors.blue.withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.blue.withValues(alpha: 0.1)),
+            border: Border.all(color: Colors.blue.withOpacity(0.1)),
           ),
           child: const Row(
             children: [
@@ -750,7 +838,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(32),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
+                color: Colors.black.withOpacity(0.04),
                 blurRadius: 40,
                 offset: const Offset(0, 12),
               )
@@ -775,7 +863,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                         color: Colors.white,
                         shape: BoxShape.circle,
                         boxShadow: [
-                          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)
+                          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)
                         ],
                       ),
                       child: const Icon(Icons.how_to_vote_rounded, color: Color(0xFF1A73E8), size: 32),
@@ -854,31 +942,42 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                                 border: Border.all(color: Colors.grey.shade100, width: 1.5),
                               ),
                               child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Container(
-                                    width: 48,
-                                    height: 48,
+                                    width: 80,
+                                    height: 80,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF1A73E8).withValues(alpha: 0.05),
+                                      color: const Color(0xFF1A73E8).withOpacity(0.05),
                                       borderRadius: BorderRadius.circular(14),
+                                      image: c.imagePath != null ? DecorationImage(image: FileImage(File(c.imagePath!)), fit: BoxFit.cover) : null,
                                     ),
-                                    child: Center(
+                                    child: c.imagePath == null ? Center(
                                       child: Text(
                                         c.name[0].toUpperCase(),
-                                        style: const TextStyle(color: Color(0xFF1A73E8), fontWeight: FontWeight.bold, fontSize: 18),
+                                        style: const TextStyle(color: Color(0xFF1A73E8), fontWeight: FontWeight.bold, fontSize: 28),
                                       ),
-                                    ),
+                                    ) : null,
                                   ),
-                                  const SizedBox(width: 16),
+                                  const SizedBox(width: 20),
                                   Expanded(
-                                    child: Text(
-                                      c.name,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          c.name,
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(c.program, style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                                        Text('Level ${c.level}', style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                                        Text(c.academicYear, style: const TextStyle(fontSize: 13, color: Colors.blueAccent, fontWeight: FontWeight.w500)),
+                                      ],
                                     ),
                                   ),
                                   Container(
-                                    width: 24,
-                                    height: 24,
+                                    width: 28,
+                                    height: 28,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(color: Colors.grey.shade300, width: 2),
@@ -925,7 +1024,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white, 
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, -5))]
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, -5))]
       ),
       child: ElevatedButton(
         onPressed: _publishSlip,
@@ -967,7 +1066,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
         title: const Text('Create Category'),
         content: TextField(
           controller: _categoryController, 
-          decoration: const InputDecoration(labelText: 'Name (e.g. Secretary)', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))))
+          decoration: const InputDecoration(labelText: 'Name (e.g. President)', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))))
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
@@ -1012,6 +1111,10 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
 
   void _showAddCandidateWithCategory(String? preselectedCategory) {
     _nameController.clear();
+    _programController.clear();
+    _levelController.clear();
+    _yearController.text = "2025/2026";
+    _selectedImagePath = null;
     String? selectedCat = preselectedCategory ?? (_votingService.categoryList.isNotEmpty ? _votingService.categoryList[0] : null);
 
     showDialog(
@@ -1020,34 +1123,85 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
         builder: (context, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Text('New Candidate'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _nameController, 
-                decoration: const InputDecoration(labelText: 'Full Name', prefixIcon: Icon(Icons.person_outline), border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))))
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: selectedCat,
-                decoration: const InputDecoration(labelText: 'Respective Category', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14)))),
-                items: _votingService.categoryList.map((String value) {
-                  return DropdownMenuItem<String>(value: value, child: Text(value));
-                }).toList(),
-                onChanged: (newValue) => setDialogState(() => selectedCat = newValue),
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => _pickImage(setDialogState),
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(16),
+                          image: _selectedImagePath != null ? DecorationImage(image: FileImage(File(_selectedImagePath!)), fit: BoxFit.cover) : null,
+                        ),
+                        child: _selectedImagePath == null ? const Icon(Icons.add_a_photo_outlined, size: 30, color: Colors.grey) : null,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Text(
+                        'Tap to upload candidate picture',
+                        style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _nameController, 
+                  decoration: const InputDecoration(labelText: 'Full Name', prefixIcon: Icon(Icons.person_outline), border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))))
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _programController, 
+                  decoration: const InputDecoration(labelText: 'Program of Study', prefixIcon: Icon(Icons.school_outlined), border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))))
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _levelController, 
+                  decoration: const InputDecoration(labelText: 'Level', prefixIcon: Icon(Icons.leaderboard_outlined), border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))))
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _yearController, 
+                  decoration: const InputDecoration(labelText: 'Academic Year', prefixIcon: Icon(Icons.calendar_month_outlined), border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))))
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedCat,
+                  decoration: const InputDecoration(labelText: 'Respective Category', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14)))),
+                  items: _votingService.categoryList.map((String value) {
+                    return DropdownMenuItem<String>(value: value, child: Text(value));
+                  }).toList(),
+                  onChanged: (newValue) => setDialogState(() => selectedCat = newValue),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () { 
-                if (_nameController.text.isNotEmpty && selectedCat != null) { 
-                  setState(() => _votingService.addCandidate(_nameController.text.trim(), selectedCat!)); 
+                if (_nameController.text.isNotEmpty && selectedCat != null && _programController.text.isNotEmpty && _levelController.text.isNotEmpty && _yearController.text.isNotEmpty) { 
+                  setState(() => _votingService.addCandidate(
+                    _nameController.text.trim(), 
+                    selectedCat!,
+                    _programController.text.trim(),
+                    _levelController.text.trim(),
+                    _yearController.text.trim(),
+                    _selectedImagePath
+                  )); 
                   Navigator.pop(context); 
-                } 
+                } else {
+                  _showSnackBar('Please fill all fields', Colors.orange);
+                }
               }, 
-              child: const Text('Add to Roster')
+              child: const Text('Add to Slip')
             ),
           ],
         ),
@@ -1057,6 +1211,10 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
 
   void _showEditCandidateDialog(Candidate candidate) {
     _nameController.text = candidate.name;
+    _programController.text = candidate.program;
+    _levelController.text = candidate.level;
+    _yearController.text = candidate.academicYear;
+    _selectedImagePath = candidate.imagePath;
     String? selectedCat = candidate.category;
 
     showDialog(
@@ -1065,40 +1223,100 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
         builder: (context, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Text('Edit Candidate'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Full Name',
-                  prefixIcon: Icon(Icons.person_outline),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => _pickImage(setDialogState),
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(16),
+                          image: _selectedImagePath != null ? DecorationImage(image: FileImage(File(_selectedImagePath!)), fit: BoxFit.cover) : null,
+                        ),
+                        child: _selectedImagePath == null ? const Icon(Icons.add_a_photo_outlined, size: 30, color: Colors.grey) : null,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Text(
+                        'Tap to change candidate picture',
+                        style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: selectedCat,
-                decoration: const InputDecoration(
-                  labelText: 'Respective Category',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Full Name',
+                    prefixIcon: Icon(Icons.person_outline),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
+                  ),
                 ),
-                items: _votingService.categoryList.map((String value) {
-                  return DropdownMenuItem<String>(value: value, child: Text(value));
-                }).toList(),
-                onChanged: (newValue) => setDialogState(() => selectedCat = newValue),
-              ),
-            ],
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _programController,
+                  decoration: const InputDecoration(
+                    labelText: 'Program of Study',
+                    prefixIcon: Icon(Icons.school_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _levelController,
+                  decoration: const InputDecoration(
+                    labelText: 'Level',
+                    prefixIcon: Icon(Icons.leaderboard_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _yearController, 
+                  decoration: const InputDecoration(labelText: 'Academic Year', prefixIcon: Icon(Icons.calendar_month_outlined), border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))))
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedCat,
+                  decoration: const InputDecoration(
+                    labelText: 'Respective Category',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
+                  ),
+                  items: _votingService.categoryList.map((String value) {
+                    return DropdownMenuItem<String>(value: value, child: Text(value));
+                  }).toList(),
+                  onChanged: (newValue) => setDialogState(() => selectedCat = newValue),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () {
-                if (_nameController.text.isNotEmpty && selectedCat != null) {
+                if (_nameController.text.isNotEmpty && selectedCat != null && _programController.text.isNotEmpty && _levelController.text.isNotEmpty && _yearController.text.isNotEmpty) {
                   setState(() {
-                    _votingService.updateCandidate(candidate.id, _nameController.text.trim(), selectedCat!);
+                    _votingService.updateCandidate(
+                      candidate.id, 
+                      _nameController.text.trim(), 
+                      selectedCat!,
+                      _programController.text.trim(),
+                      _levelController.text.trim(),
+                      _yearController.text.trim(),
+                      _selectedImagePath
+                    );
                   });
                   Navigator.pop(context);
+                } else {
+                  _showSnackBar('Please fill all fields', Colors.orange);
                 }
               },
               child: const Text('Save Changes'),

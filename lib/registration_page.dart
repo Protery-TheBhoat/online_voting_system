@@ -98,7 +98,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       const SizedBox(height: 12),
                       Text(
                         'Register today to cast your secure vote.',
-                        style: TextStyle(fontSize: 18, color: Colors.white.withValues(alpha: 0.8)),
+                        style: TextStyle(fontSize: 18, color: Colors.white.withOpacity(0.8)),
                       ),
                     ],
                   ),
@@ -119,7 +119,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF34A853).withValues(alpha: 0.1),
+                          color: const Color(0xFF34A853).withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.how_to_reg_rounded, color: Color(0xFF34A853), size: 32),
