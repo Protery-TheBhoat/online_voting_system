@@ -34,6 +34,7 @@ class AuthService {
             password: item['password'],
             hasVoted: item['hasVoted'] ?? false,
             isFingerprintEnabled: item['isFingerprintEnabled'] ?? false,
+            isFaceEnabled: item['isFaceEnabled'] ?? false,
           ));
         }
       }
@@ -68,6 +69,7 @@ class AuthService {
         'password': u.password,
         'hasVoted': u.hasVoted,
         'isFingerprintEnabled': u.isFingerprintEnabled,
+        'isFaceEnabled': u.isFaceEnabled,
       }).toList();
       await prefs.setString('all_users', json.encode(usersData));
     } catch (e) {
@@ -75,13 +77,15 @@ class AuthService {
     }
   }
 
-  bool register(String stuID, String password) {
+  bool register(String stuID, String password, {bool isFingerprintEnabled = false, bool isFaceEnabled = false}) {
     if (_users.any((u) => u.stuID == stuID)) {
       return false;
     }
     _users.add(User(
       stuID: stuID, 
       password: password,
+      isFingerprintEnabled: isFingerprintEnabled,
+      isFaceEnabled: isFaceEnabled,
     ));
     _persistUsers();
     return true;
@@ -113,8 +117,24 @@ class AuthService {
     }
   }
 
-  Future<bool> adminLogin(String username, String password) async {
-    if (username == 'admin' && password == 'admin123') {
+  Future<void> resetAllVotes() async {
+    for (var user in _users) {
+      user.hasVoted = false;
+    }
+    await _persistUsers();
+  }
+
+  Future<bool> changePassword(String newPassword) async {
+    if (_currentUser != null) {
+      _currentUser!.password = newPassword;
+      await _persistUsers();
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> adminLogin(String password) async {
+    if (password == 'thebhoat') {
       _isAdmin = true;
       _currentUser = null;
       
@@ -134,7 +154,6 @@ class AuthService {
     _isAdmin = false;
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      // FIX: Only remove session keys, don't use prefs.clear() which wipes election data
       await prefs.remove('stuID');
       await prefs.remove('isAdmin');
     } catch (_) {}

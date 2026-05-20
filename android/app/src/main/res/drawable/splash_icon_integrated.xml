@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Semi-transparent white circle (0.15 opacity) -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#26FFFFFF" />
+            <size android:width="180dp" android:height="180dp" />
+        </shape>
+    </item>
+    <!-- The icon centered inside the circle -->
+    <item
+        android:top="40dp"
+        android:bottom="40dp"
+        android:left="40dp"
+        android:right="40dp">
+        <vector
+            android:width="24dp"
+            android:height="24dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24"
+            android:tint="#FFFFFF">
+            <path
+                android:fillColor="@android:color/white"
+                android:pathData="M18,13h-5c-0.55,0 -1,0.45 -1,1v5c0,0.55 0.45,1 1,1h5c0.55,0 1,-0.45 1,-1v-5c0,-0.55 -0.45,-1 -1,-1zM12,3L3.35,11.65c-0.2,0.2 -0.2,0.51 0,0.71l5.3,5.3c0.2,0.2 0.51,0.2 0.71,0l8.65,-8.65L12,3zM11.31,15.03l-2.83,-2.83 1.41,-1.41 1.41,1.41 3.54,-3.54 1.41,1.41 -4.94,4.96z"/>
+        </vector>
+    </item>
+</layer-list>

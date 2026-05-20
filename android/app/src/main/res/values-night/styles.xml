@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Theme applied while the process is starting (Dark Mode) -->
     <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:windowBackground">@drawable/launch_background</item>
 
         <!-- Android 12+ Splash Screen API -->
-        <!-- Removed logo from native splash to avoid duplication with Flutter splash -->
-        <item name="android:windowSplashScreenAnimatedIcon" xmlns:android="http://schemas.android.com/apk/res/android">@android:color/transparent</item>
-        <item name="android:windowSplashScreenBackground" xmlns:android="http://schemas.android.com/apk/res/android">@color/splash_color</item>
+        <item name="android:windowSplashScreenBackground">#1A73E8</item>
     </style>
 
     <!-- Theme applied after Flutter initializes (Dark Mode) -->
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
-        <!-- Match background to avoid flash during transition -->
         <item name="android:windowBackground">@drawable/splash_gradient</item>
     </style>
 </resources>

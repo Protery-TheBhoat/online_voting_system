@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <!-- Colors.white.withOpacity(0.15) is roughly #26FFFFFF -->
+    <solid android:color="#26FFFFFF" />
+    <size android:width="190dp" android:height="190dp" />
+</shape>

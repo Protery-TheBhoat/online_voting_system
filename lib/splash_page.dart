@@ -15,8 +15,7 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+  late Animation<double> _textFadeAnimation;
   final _authService = AuthService();
   final _votingService = VotingService();
   final LocalAuthentication auth = LocalAuthentication();
@@ -26,15 +25,14 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 2000),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.6, curve: Curves.easeIn)),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack)),
+    _textFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.3, 0.7, curve: Curves.easeIn),
+      ),
     );
 
     _controller.forward();
@@ -135,7 +133,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     await Future.wait([
       _authService.init(),
       _votingService.init(),
-      Future.delayed(const Duration(seconds: 3)),
+      Future.delayed(const Duration(seconds: 2)),
     ]);
 
     if (!mounted) return;
@@ -151,7 +149,6 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
         nextScreen = const LoginPage();
       }
     } else if (_authService.isAdmin) {
-      // Ensure admins go to AdminPanel so the Management tab is present
       nextScreen = const AdminPanel();
     }
 
@@ -182,50 +179,57 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
             colors: [Color(0xFF1A73E8), Color(0xFF0D47A1)],
           ),
         ),
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.how_to_vote_rounded,
-                    size: 150,
-                    color: Colors.white,
-                  ),
+        child: Stack(
+          children: [
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(height: 30),
-                const Text(
-                  'Poll Station',
-                  style: TextStyle(
-                    fontSize: 36,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                  ),
+                child: const Icon(
+                  Icons.how_to_vote_rounded,
+                  size: 150,
+                  color: Colors.white,
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  'Secure • Transparent • Reliable',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white.withOpacity(0.8),
-                    fontWeight: FontWeight.w300,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 60),
-                const ThreeDotsIndicator(),
-              ],
+              ),
             ),
-          ),
+            Positioned(
+              bottom: 80,
+              left: 0,
+              right: 0,
+              child: FadeTransition(
+                opacity: _textFadeAnimation,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Poll Station',
+                      style: TextStyle(
+                        fontSize: 36,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Secure • Transparent • Reliable',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white.withOpacity(0.8),
+                        fontWeight: FontWeight.w300,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    const ThreeDotsIndicator(),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

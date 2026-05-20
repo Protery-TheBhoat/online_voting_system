@@ -5,6 +5,7 @@ import 'registration_page.dart';
 import 'admin_panel.dart';
 import 'voting_service.dart';
 import 'main.dart';
+import 'theme_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -121,8 +122,13 @@ class _LoginPageState extends State<LoginPage> {
     final id = _idController.text.trim();
     final password = _passwordController.text;
 
-    if (id.isEmpty || password.isEmpty) {
+    if (_selectedRole == 'Student' && (id.isEmpty || password.isEmpty)) {
       _showSnackBar('Please fill in all fields', Colors.orange);
+      return;
+    }
+    
+    if (_selectedRole == 'Admin' && password.isEmpty) {
+      _showSnackBar('Please enter your password', Colors.orange);
       return;
     }
 
@@ -143,10 +149,9 @@ class _LoginPageState extends State<LoginPage> {
           _showSnackBar('Invalid student credentials', Colors.redAccent);
         }
       } else {
-        final success = await _authService.adminLogin(id, password);
+        final success = await _authService.adminLogin(password);
         if (success) {
           if (!mounted) return;
-          // Always navigate to AdminPanel to ensure Management tab is accessible
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const AdminPanel()),
@@ -196,8 +201,14 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        // Theme toggle removed from here as per request
+      ),
+      extendBodyBehindAppBar: true,
       body: Row(
         children: [
           if (MediaQuery.of(context).size.width > 800)
@@ -246,10 +257,10 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      const Center(
+                      Center(
                         child: Text(
                           'Welcome Back',
-                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF202124)),
+                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF202124)),
                         ),
                       ),
                       const Center(
@@ -269,25 +280,27 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 32),
                       
-                      TextField(
-                        controller: _idController,
-                        enabled: !_isLoading,
-                        decoration: InputDecoration(
-                          labelText: _selectedRole == 'Student' ? 'Student ID' : 'Admin ID',
-                          prefixIcon: const Icon(Icons.badge_outlined),
-                          filled: true,
-                          fillColor: const Color(0xFFF8F9FA),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF1A73E8), width: 2),
+                      if (_selectedRole == 'Student') ...[
+                        TextField(
+                          controller: _idController,
+                          enabled: !_isLoading,
+                          decoration: InputDecoration(
+                            labelText: 'Student ID',
+                            prefixIcon: const Icon(Icons.badge_outlined),
+                            filled: true,
+                            fillColor: isDark ? Colors.white10 : const Color(0xFFF8F9FA),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFF1A73E8), width: 2),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 20),
+                      ],
                       TextField(
                         controller: _passwordController,
                         obscureText: !_isPasswordVisible,
@@ -296,7 +309,7 @@ class _LoginPageState extends State<LoginPage> {
                           labelText: 'Password',
                           prefixIcon: const Icon(Icons.lock_open_rounded),
                           filled: true,
-                          fillColor: const Color(0xFFF8F9FA),
+                          fillColor: isDark ? Colors.white10 : const Color(0xFFF8F9FA),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -358,13 +371,14 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildRoleTab(String role, IconData icon) {
     final isSelected = _selectedRole == role;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: _isLoading ? null : () => setState(() => _selectedRole = role),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1A73E8) : Colors.white,
+          color: isSelected ? const Color(0xFF1A73E8) : (isDark ? Colors.white10 : Colors.white),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: isSelected ? const Color(0xFF1A73E8) : Colors.grey.shade300),
           boxShadow: isSelected ? [BoxShadow(color: const Color(0xFF1A73E8).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],

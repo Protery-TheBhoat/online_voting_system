@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Theme applied to the Android Window while the process is starting -->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Theme applied while the process is starting -->
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">@drawable/launch_background</item>
 
         <!-- Android 12+ Splash Screen API -->
-        <!-- Removed logo from native splash to avoid duplication with Flutter splash -->
-        <item name="android:windowSplashScreenAnimatedIcon" xmlns:android="http://schemas.android.com/apk/res/android">@android:color/transparent</item>
-        <item name="android:windowSplashScreenBackground" xmlns:android="http://schemas.android.com/apk/res/android">@color/splash_color</item>
+        <item name="android:windowSplashScreenBackground">#1A73E8</item>
     </style>
 
-    <!-- Theme applied after the Flutter UI initializes -->
+    <!-- Theme applied after Flutter initializes -->
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <!-- Changed from ?android:colorBackground to match splash to avoid white flash -->
         <item name="android:windowBackground">@drawable/splash_gradient</item>
     </style>
 </resources>

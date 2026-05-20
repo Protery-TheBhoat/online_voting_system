@@ -5,8 +5,12 @@ import 'splash_page.dart';
 import 'login_page.dart';
 import 'voting_service.dart';
 import 'auth_service.dart';
+import 'theme_service.dart';
+import 'settings_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ThemeService().init();
   runApp(const MyApp());
 }
 
@@ -15,40 +19,70 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Poll Station',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1A73E8),
-          primary: const Color(0xFF1A73E8),
-          secondary: const Color(0xFF34A853),
-          surface: Colors.white,
-        ),
-        textTheme: const TextTheme(
-          headlineMedium: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF202124)),
-          titleLarge: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF202124)),
-          bodyLarge: TextStyle(color: Color(0xFF3C4043)),
-        ),
-        cardTheme: CardThemeData(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          color: const Color(0xFFC0C0C0),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF1A73E8),
-            foregroundColor: Colors.white,
-            minimumSize: const Size(double.infinity, 54),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeService().themeMode,
+      builder: (context, mode, child) {
+        return MaterialApp(
+          title: 'Poll Station',
+          debugShowCheckedModeBanner: false,
+          themeMode: mode,
+          theme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.light,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF1A73E8),
+              primary: const Color(0xFF1A73E8),
+              secondary: const Color(0xFF34A853),
+              surface: Colors.white,
+            ),
+            textTheme: const TextTheme(
+              headlineMedium: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF202124)),
+              titleLarge: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF202124)),
+              bodyLarge: TextStyle(color: Color(0xFF3C4043)),
+            ),
+            cardTheme: CardThemeData(
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              color: Colors.white,
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1A73E8),
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 54),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
-        ),
-      ),
-      home: const SplashPage(),
-      routes: {
-        '/login': (context) => const LoginPage(),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF1A73E8),
+              brightness: Brightness.dark,
+              primary: const Color(0xFF1A73E8),
+              secondary: const Color(0xFF34A853),
+            ),
+            cardTheme: CardThemeData(
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1A73E8),
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 54),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          home: const SplashPage(),
+          routes: {
+            '/login': (context) => const LoginPage(),
+          },
+        );
       },
     );
   }
@@ -146,27 +180,34 @@ class _VotingDashboardState extends State<VotingDashboard> {
   Widget build(BuildContext context) {
     final isVotingActive = _votingService.isVotingActive;
     final isVotingEnded = _votingService.isVotingEnded;
+    final isPublished = _votingService.isPublished;
     final categories = _votingService.categories.toList();
     final hasVoted = _authService.currentUser?.hasVoted ?? false;
     final isAdmin = _authService.isAdmin;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final List<Widget> pages = [
       _buildHome(isVotingActive, isVotingEnded, isAdmin),
     ];
 
     if (!isAdmin) {
-      pages.add(_buildVotingInterface(hasVoted, isVotingActive, categories));
+      pages.add(_buildVotingInterface(hasVoted, isVotingActive, isVotingEnded, isPublished, categories));
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? Colors.black : Colors.white,
         surfaceTintColor: Colors.transparent,
+        centerTitle: false,
+        leading: IconButton(
+          icon: const Icon(Icons.settings_outlined),
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsPage())),
+        ),
         title: Text(
-          _selectedIndex == 0 ? (isAdmin ? 'Admin Dashboard' : 'Poll Station Hub') : 'Cast Hub',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          _selectedIndex == 0 ? 'POLL STATION' : 'CAST HUB',
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A73E8), fontSize: 16),
+          overflow: TextOverflow.ellipsis,
         ),
         actions: [
           IconButton(
@@ -186,18 +227,17 @@ class _VotingDashboardState extends State<VotingDashboard> {
       ),
       bottomNavigationBar: isAdmin ? null : Container(
         decoration: BoxDecoration(
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
         ),
         child: BottomNavigationBar(
           currentIndex: _selectedIndex,
           elevation: 0,
-          backgroundColor: Colors.white,
           selectedItemColor: const Color(0xFF1A73E8),
           unselectedItemColor: Colors.grey,
           onTap: (index) => setState(() => _selectedIndex = index),
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Status'),
-            BottomNavigationBarItem(icon: Icon(Icons.how_to_vote_outlined), activeIcon: Icon(Icons.how_to_vote), label: 'Vote'),
+            BottomNavigationBarItem(icon: Icon(Icons.ballot_outlined), activeIcon: Icon(Icons.ballot_rounded), label: 'Vote'),
           ],
         ),
       ),
@@ -237,7 +277,7 @@ class _VotingDashboardState extends State<VotingDashboard> {
                 SizedBox(width: 8),
                 Text(
                   'Final Election Winners', 
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -261,21 +301,21 @@ class _VotingDashboardState extends State<VotingDashboard> {
   }
 
   Widget _buildStatusBanner(bool isActive, bool isEnded) {
-    Color bgColor = Colors.red.withOpacity(0.1);
-    Color borderColor = Colors.red.withOpacity(0.3);
+    Color bgColor = Colors.red.withValues(alpha: 0.1);
+    Color borderColor = Colors.red.withValues(alpha: 0.3);
     Color textColor = Colors.red.shade700;
     IconData icon = Icons.stop_circle;
     String text = 'VOTING SESSION CLOSED';
 
     if (isActive) {
-      bgColor = Colors.green.withOpacity(0.1);
-      borderColor = Colors.green.withOpacity(0.3);
+      bgColor = Colors.green.withValues(alpha: 0.1);
+      borderColor = Colors.green.withValues(alpha: 0.3);
       textColor = Colors.green.shade700;
       icon = Icons.circle;
       text = 'VOTING SESSION ACTIVE';
     } else if (isEnded) {
-      bgColor = const Color(0xFFC0C0C0).withOpacity(0.1);
-      borderColor = const Color(0xFFC0C0C0).withOpacity(0.3);
+      bgColor = const Color(0xFFC0C0C0).withValues(alpha: 0.1);
+      borderColor = const Color(0xFFC0C0C0).withValues(alpha: 0.3);
       textColor = Colors.blue.shade700;
       icon = Icons.emoji_events;
       text = 'VOTING SESSION ENDED';
@@ -310,7 +350,7 @@ class _VotingDashboardState extends State<VotingDashboard> {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: const Color(0xFF1A73E8).withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(color: const Color(0xFF1A73E8).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
               child: const Icon(Icons.calendar_today_rounded, color: Color(0xFF1A73E8)),
             ),
             const SizedBox(width: 16),
@@ -321,7 +361,7 @@ class _VotingDashboardState extends State<VotingDashboard> {
                   const Text('Election Period', style: TextStyle(fontWeight: FontWeight.bold)),
                   Text(
                     '${_formatDateTime(_votingService.startTime)} - ${_formatDateTime(_votingService.endTime)}',
-                    style: const TextStyle(fontSize: 12, color: Colors.black87),
+                    style: const TextStyle(fontSize: 12),
                   ),
                 ],
               ),
@@ -360,10 +400,11 @@ class _VotingDashboardState extends State<VotingDashboard> {
                       children: [
                         Expanded(
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               CircleAvatar(
                                 radius: 30,
-                                backgroundColor: const Color(0xFF1A73E8).withOpacity(0.1),
+                                backgroundColor: const Color(0xFF1A73E8).withValues(alpha: 0.1),
                                 backgroundImage: c.imagePath != null ? FileImage(File(c.imagePath!)) : null,
                                 child: c.imagePath == null ? Text(c.name[0].toUpperCase(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)) : null,
                               ),
@@ -373,8 +414,8 @@ class _VotingDashboardState extends State<VotingDashboard> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                                    Text(c.program, style: const TextStyle(fontSize: 11, color: Colors.black87)),
-                                    Text('Level ${c.level}', style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                                    Text(c.program, style: const TextStyle(fontSize: 11)),
+                                    Text('Level ${c.level}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
                                     Text(c.academicYear, style: const TextStyle(fontSize: 11, color: Colors.blueAccent, fontWeight: FontWeight.bold)),
                                     Text('${c.votes} votes', style: const TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.bold)),
                                   ],
@@ -392,7 +433,7 @@ class _VotingDashboardState extends State<VotingDashboard> {
                       child: LinearProgressIndicator(
                         value: progressValue,
                         minHeight: 8,
-                        backgroundColor: Colors.white,
+                        backgroundColor: Colors.grey.withValues(alpha: 0.2),
                         valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1A73E8)),
                       ),
                     ),
@@ -413,13 +454,13 @@ class _VotingDashboardState extends State<VotingDashboard> {
     
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      color: const Color(0xFFC0C0C0), 
+      color: Colors.grey.withValues(alpha: 0.1), 
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: Colors.green, width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -432,13 +473,14 @@ class _VotingDashboardState extends State<VotingDashboard> {
             ),
             const SizedBox(height: 16),
             if (winners.isEmpty)
-              const Text('No votes cast for this category', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.black54))
+              const Text('No votes cast for this category', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey))
             else
               ...winners.map((w) {
                 final double percentage = totalVotes == 0 ? 0 : (w.votes / totalVotes) * 100;
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.check_circle, color: Colors.green, size: 20),
                       const SizedBox(width: 8),
@@ -457,8 +499,8 @@ class _VotingDashboardState extends State<VotingDashboard> {
                               w.name,
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                             ),
-                            Text(w.program, style: const TextStyle(fontSize: 12, color: Colors.black87)),
-                            Text('Level ${w.level}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                            Text(w.program, style: const TextStyle(fontSize: 12)),
+                            Text('Level ${w.level}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                             Text(w.academicYear, style: const TextStyle(fontSize: 12, color: Colors.blueAccent, fontWeight: FontWeight.bold)),
                             Text('${w.votes} votes (${percentage.toStringAsFixed(1)}%)', style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold)),
                           ],
@@ -475,7 +517,57 @@ class _VotingDashboardState extends State<VotingDashboard> {
     );
   }
 
-  Widget _buildVotingInterface(bool hasVoted, bool isVotingActive, List<String> categories) {
+  Widget _buildVotingInterface(bool hasVoted, bool isVotingActive, bool isVotingEnded, bool isPublished, List<String> categories) {
+    if (!isPublished) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: const Icon(Icons.ballot_outlined, size: 80, color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            const Text('No Election Published', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            const Text('Awaiting a new election slip from the admin.', style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+
+    if (isVotingEnded) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: const Icon(Icons.history_toggle_off_rounded, size: 80, color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            const Text('Session Completed', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            const Text('This voting session has officially ended.', style: TextStyle(color: Colors.grey)),
+            const Text('Awaiting the next election slip from the administrator.', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 32),
+            OutlinedButton.icon(
+              onPressed: () => setState(() => _selectedIndex = 0),
+              icon: const Icon(Icons.analytics_outlined),
+              label: const Text('View Final Results'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Message displayed only when student already voted and session NOT ended
     if (hasVoted) {
       return Center(
         child: Column(
@@ -483,7 +575,7 @@ class _VotingDashboardState extends State<VotingDashboard> {
           children: [
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: const Icon(Icons.check_circle_rounded, size: 80, color: Colors.green),
             ),
             const SizedBox(height: 24),
@@ -496,7 +588,23 @@ class _VotingDashboardState extends State<VotingDashboard> {
     }
 
     if (!isVotingActive) {
-      return const Center(child: Text('Voting is currently closed.', style: TextStyle(fontSize: 18, color: Colors.grey)));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: const Icon(Icons.timer_outlined, size: 80, color: Colors.orange),
+            ),
+            const SizedBox(height: 24),
+            const Text('Voting is Closed', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            const Text('The election session has not started yet.', style: TextStyle(color: Colors.grey)),
+            const Text('Please check back during the election period.', style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+      );
     }
 
     return Column(
@@ -515,56 +623,61 @@ class _VotingDashboardState extends State<VotingDashboard> {
                     padding: const EdgeInsets.symmetric(vertical: 12.0),
                     child: Text(category, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
-                  ...candidates.map((candidate) {
-                    final isSelected = _selectedCandidates[category] == candidate.id;
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF1A73E8).withOpacity(0.05) : const Color(0xFFC0C0C0),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: isSelected ? const Color(0xFF1A73E8) : Colors.grey.shade400, width: isSelected ? 2 : 1),
-                      ),
-                      child: RadioListTile<String>(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        title: Row(
-                          children: [
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                image: candidate.imagePath != null ? DecorationImage(image: FileImage(File(candidate.imagePath!)), fit: BoxFit.cover) : null,
-                              ),
-                              child: candidate.imagePath == null ? Center(child: Text(candidate.name[0].toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 32))) : null,
+                  RadioGroup<String>(
+                    groupValue: _selectedCandidates[category],
+                    onChanged: (String? value) {
+                      if (value != null) {
+                        setState(() => _selectedCandidates[category] = value);
+                      }
+                    },
+                    child: Column(
+                      children: candidates.map((candidate) {
+                        final isSelected = _selectedCandidates[category] == candidate.id;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFF1A73E8).withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: isSelected ? const Color(0xFF1A73E8) : Colors.grey.shade400, width: isSelected ? 2 : 1),
+                          ),
+                          child: RadioListTile<String>(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            title: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 80,
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    image: candidate.imagePath != null ? DecorationImage(image: FileImage(File(candidate.imagePath!)), fit: BoxFit.cover) : null,
+                                  ),
+                                  child: candidate.imagePath == null ? Center(child: Text(candidate.name[0].toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 32, color: Colors.black))) : null,
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(candidate.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                      const SizedBox(height: 4),
+                                      Text(candidate.program, style: const TextStyle(fontSize: 12)),
+                                      Text('Level ${candidate.level}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                      Text(candidate.academicYear, style: const TextStyle(fontSize: 12, color: Colors.blueAccent, fontWeight: FontWeight.w600)),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(candidate.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  const SizedBox(height: 4),
-                                  Text(candidate.program, style: const TextStyle(fontSize: 12, color: Colors.black87)),
-                                  Text('Level ${candidate.level}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
-                                  Text(candidate.academicYear, style: const TextStyle(fontSize: 12, color: Colors.blueAccent, fontWeight: FontWeight.w600)),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        value: candidate.id,
-                        groupValue: _selectedCandidates[category],
-                        activeColor: const Color(0xFF1A73E8),
-                        onChanged: (String? value) {
-                          if (value != null) {
-                            setState(() => _selectedCandidates[category] = value);
-                          }
-                        },
-                      ),
-                    );
-                  }),
+                            value: candidate.id,
+                            activeColor: const Color(0xFF1A73E8),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                   const SizedBox(height: 12),
                 ],
               );
@@ -573,7 +686,10 @@ class _VotingDashboardState extends State<VotingDashboard> {
         ),
         Container(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))]),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
+          ),
           child: ElevatedButton(
             onPressed: _submitVotes,
             child: const Text('Cast Vote'),

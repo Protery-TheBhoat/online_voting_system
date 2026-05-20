@@ -5,6 +5,8 @@ import 'candidate.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'theme_service.dart';
+import 'settings_page.dart';
 
 class AdminPanel extends StatefulWidget {
   const AdminPanel({super.key});
@@ -71,18 +73,21 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Reset Election?'),
-        content: const Text('This will clear all current categories, candidates, and results. This action cannot be undone and will allow you to start a fresh election.'),
+        content: const Text('This will clear all current categories, candidates, and results. This action cannot be undone and will allow you to start a fresh election by resetting all voter records.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               setState(() {
                 _votingService.clearSession();
                 _tempStart = null;
                 _tempEnd = null;
               });
-              Navigator.pop(context);
-              _showSnackBar('Session cleared successfully. You can now configure a new election.', Colors.green);
+              await _authService.resetAllVotes();
+              if (mounted) {
+                Navigator.pop(context);
+                _showSnackBar('Election reset successfully. All voter records cleared.', Colors.green);
+              }
             },
             child: const Text('Reset', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
@@ -171,23 +176,22 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        centerTitle: true,
+        backgroundColor: isDark ? Colors.black : Colors.white,
+        centerTitle: false,
+        leading: IconButton(
+          icon: const Icon(Icons.settings_outlined),
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsPage())),
+        ),
         title: Text(
-          _mainTabIndex == 0 ? 'ADMIN DASHBOARD' : 'MANAGEMENT HUB',
-          style: const TextStyle(color: Color(0xFF1A73E8), fontWeight: FontWeight.w900, letterSpacing: 1.2, fontSize: 18),
+          _mainTabIndex == 0 ? 'DASHBOARD' : 'MANAGEMENT',
+          style: const TextStyle(color: Color(0xFF1A73E8), fontWeight: FontWeight.w900, letterSpacing: 1.2, fontSize: 16),
+          overflow: TextOverflow.ellipsis,
         ),
         actions: [
-          if (_mainTabIndex == 1 && _votingService.isPublished)
-            IconButton(
-              icon: const Icon(Icons.refresh_rounded, color: Colors.orange),
-              tooltip: 'Reset for New Election',
-              onPressed: _handleResetSession,
-            ),
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
             onPressed: () async {
@@ -208,7 +212,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? Colors.black : Colors.white,
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, -4))],
         ),
         child: BottomNavigationBar(
@@ -216,7 +220,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
           onTap: (index) => setState(() => _mainTabIndex = index),
           selectedItemColor: const Color(0xFF1A73E8),
           unselectedItemColor: Colors.grey,
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? Colors.black : Colors.white,
           elevation: 0,
           type: BottomNavigationBarType.fixed,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
@@ -243,6 +247,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     bool isVotingActive = _votingService.isVotingActive;
     bool isVotingEnded = _votingService.isVotingEnded;
     bool isPublished = _votingService.isPublished;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -256,11 +261,11 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
           if (isPublished) ...[
             Row(
               children: [
-                Icon(isVotingEnded ? Icons.emoji_events_rounded : Icons.analytics_rounded, color: isVotingEnded ? Colors.black : const Color(0xFF1A73E8)),
+                Icon(isVotingEnded ? Icons.emoji_events_rounded : Icons.analytics_rounded, color: isVotingEnded ? (isDark ? Colors.white : Colors.black) : const Color(0xFF1A73E8)),
                 const SizedBox(width: 12),
                 Text(
                   isVotingEnded ? 'Final Election Winners' : 'Live Results Progress', 
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isVotingEnded ? Colors.black : Colors.black87)
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isVotingEnded ? (isDark ? Colors.white : Colors.black) : (isDark ? Colors.white70 : Colors.black87))
                 ),
               ],
             ),
@@ -280,6 +285,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     Color color = Colors.orange;
     String text = 'PENDING SETUP';
     IconData icon = Icons.pending_rounded;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (active) {
       color = Colors.green;
@@ -298,9 +304,9 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey.withOpacity(0.1) : Colors.white,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
+        boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
       ),
       child: Row(
         children: [
@@ -316,7 +322,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
               children: [
                 Text(text, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 0.5)),
                 const SizedBox(height: 4),
-                Text(published ? (ended ? 'Election results archived' : 'Election process in progress') : 'Awaiting session configuration.', style: TextStyle(color: Colors.grey.shade600)),
+                Text(published ? (ended ? 'Election results archived' : 'Election process in progress') : 'Awaiting session configuration.', style: TextStyle(color: isDark ? Colors.white70 : Colors.grey.shade600)),
               ],
             ),
           ),
@@ -329,11 +335,12 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     final winners = _votingService.getWinnersByCategory(category);
     final candidates = _votingService.getCandidatesByCategory(category);
     final totalVotes = candidates.fold(0, (sum, c) => sum + c.votes);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
       elevation: 0,
-      color: const Color(0xFFC0C0C0).withOpacity(0.5),
+      color: isDark ? Colors.grey.withOpacity(0.1) : const Color(0xFFC0C0C0).withOpacity(0.5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
         side: const BorderSide(color: Colors.green, width: 1.5),
@@ -352,7 +359,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
             ),
             const SizedBox(height: 20),
             if (winners.isEmpty)
-              const Text('No votes cast for this category', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.black54))
+              const Text('No votes cast for this category', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey))
             else
               ...winners.map((w) {
                 final percentage = totalVotes == 0 ? 0.0 : (w.votes / totalVotes) * 100;
@@ -367,7 +374,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                         radius: 35,
                         backgroundColor: Colors.white,
                         backgroundImage: w.imagePath != null ? FileImage(File(w.imagePath!)) : null,
-                        child: w.imagePath == null ? Text(w.name[0].toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24)) : null,
+                        child: w.imagePath == null ? Text(w.name[0].toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black)) : null,
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -378,8 +385,8 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                               w.name,
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
-                            Text(w.program, style: const TextStyle(fontSize: 13, color: Colors.black87)),
-                            Text('Level ${w.level}', style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                            Text(w.program, style: const TextStyle(fontSize: 13)),
+                            Text('Level ${w.level}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
                             Text(w.academicYear, style: const TextStyle(fontSize: 13, color: Colors.blueAccent, fontWeight: FontWeight.w600)),
                             const SizedBox(height: 4),
                             Text(
@@ -401,9 +408,10 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
   }
 
   Widget _buildElectionPeriodCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.grey.shade200)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isDark ? Colors.grey.withOpacity(0.2) : Colors.grey.shade200)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Row(
@@ -423,7 +431,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                     _votingService.isPublished 
                       ? '${_formatDateTime(_votingService.startTime)} - ${_formatDateTime(_votingService.endTime)}'
                       : 'Duration not set',
-                    style: const TextStyle(fontSize: 13, color: Colors.black87),
+                    style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87),
                   ),
                 ],
               ),
@@ -438,11 +446,12 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     final candidates = _votingService.getCandidatesByCategory(category);
     final int maxVotes = candidates.fold(0, (max, c) => c.votes > max ? c.votes : max);
     final int totalVotes = candidates.fold(0, (sum, c) => sum + c.votes);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Colors.grey.shade100)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: isDark ? Colors.grey.withOpacity(0.2) : Colors.grey.shade100)),
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -473,7 +482,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                             radius: 35,
                             backgroundColor: const Color(0xFF1A73E8).withOpacity(0.1),
                             backgroundImage: c.imagePath != null ? FileImage(File(c.imagePath!)) : null,
-                            child: c.imagePath == null ? Text(c.name[0].toUpperCase(), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)) : null,
+                            child: c.imagePath == null ? Text(c.name[0].toUpperCase(), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1A73E8))) : null,
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -481,7 +490,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(c.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-                                Text(c.program, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                                Text(c.program, style: const TextStyle(fontSize: 12)),
                                 Text('Level ${c.level}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                                 Text(c.academicYear, style: const TextStyle(fontSize: 12, color: Colors.blueAccent, fontWeight: FontWeight.w600)),
                                 const SizedBox(height: 4),
@@ -504,7 +513,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                         child: LinearProgressIndicator(
                           value: ratio,
                           minHeight: 10,
-                          backgroundColor: Colors.grey.shade50,
+                          backgroundColor: isDark ? Colors.white10 : Colors.grey.shade50,
                           valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1A73E8)),
                         ),
                       ),
@@ -564,7 +573,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     return Column(
       children: [
         Container(
-          color: Colors.white,
+          color: Theme.of(context).appBarTheme.backgroundColor,
           child: TabBar(
             controller: _mgmtTabController,
             labelColor: const Color(0xFF1A73E8),
@@ -572,8 +581,8 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
             indicatorSize: TabBarIndicatorSize.tab,
             indicatorWeight: 3,
             tabs: const [
-              Tab(icon: Icon(Icons.person_add_alt_1_rounded), text: 'Candidates'),
-              Tab(icon: Icon(Icons.how_to_vote_rounded), text: 'Poll Hub'),
+              Tab(icon: Icon(Icons.people_alt_rounded), text: 'Candidates'),
+              Tab(icon: Icon(Icons.ballot_rounded), text: 'Poll Hub'),
             ],
           ),
         ),
@@ -633,12 +642,13 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
 
   Widget _buildCategoryTile(String category) {
     final candidates = _votingService.getCandidatesByCategory(category);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: isDark ? Colors.grey.withOpacity(0.2) : Colors.grey.shade200),
       ),
       child: ExpansionTile(
         initiallyExpanded: true,
@@ -685,11 +695,12 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
   }
 
   Widget _buildCandidateItem(Candidate c) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FF),
+        color: isDark ? Colors.white10 : const Color(0xFFF8F9FF),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -708,8 +719,8 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
               children: [
                 Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 4),
-                Text(c.program, style: const TextStyle(fontSize: 13, color: Colors.black87)),
-                Text('Level ${c.level}', style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                Text(c.program, style: const TextStyle(fontSize: 13)),
+                Text('Level ${c.level}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
                 Text(c.academicYear, style: const TextStyle(fontSize: 13, color: Colors.blueAccent, fontWeight: FontWeight.w500)),
               ],
             ),
@@ -764,16 +775,17 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
   }
 
   Widget _buildTimePickerCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: _pickDateTimeRange,
       borderRadius: BorderRadius.circular(24),
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white, 
+          color: isDark ? Colors.grey.withOpacity(0.1) : Colors.white, 
           borderRadius: BorderRadius.circular(24), 
           border: Border.all(color: const Color(0xFF1A73E8).withOpacity(0.1)), 
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12)]
+          boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12)]
         ),
         child: Row(
           children: [
@@ -804,6 +816,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
 
   Widget _buildSlipPreview() {
     final categories = _votingService.categoryList;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (categories.isEmpty) return _buildEmptyState(Icons.pending_rounded, 'No Data for Slip', 'Setup categories and candidates in the previous tab.');
     
     return Column(
@@ -816,14 +829,14 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.blue.withOpacity(0.1)),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.info_outline_rounded, color: Colors.blue, size: 20),
-              SizedBox(width: 12),
+              const Icon(Icons.info_outline_rounded, color: Colors.blue, size: 20),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'This preview shows exactly what voters will see on their devices.',
-                  style: TextStyle(color: Color(0xFF0D47A1), fontSize: 13, fontWeight: FontWeight.w500),
+                  style: TextStyle(color: isDark ? Colors.blue.shade200 : const Color(0xFF0D47A1), fontSize: 13, fontWeight: FontWeight.w500),
                 ),
               ),
             ],
@@ -834,9 +847,9 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? Colors.grey.withOpacity(0.1) : Colors.white,
             borderRadius: BorderRadius.circular(32),
-            boxShadow: [
+            boxShadow: isDark ? [] : [
               BoxShadow(
                 color: Colors.black.withOpacity(0.04),
                 blurRadius: 40,
@@ -851,22 +864,22 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8F9FF),
+                  color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF8F9FF),
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                  border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                  border: Border(bottom: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade100)),
                 ),
                 child: Column(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? Colors.black26 : Colors.white,
                         shape: BoxShape.circle,
-                        boxShadow: [
+                        boxShadow: isDark ? [] : [
                           BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)
                         ],
                       ),
-                      child: const Icon(Icons.how_to_vote_rounded, color: Color(0xFF1A73E8), size: 32),
+                      child: const Icon(Icons.ballot_rounded, color: Color(0xFF1A73E8), size: 32),
                     ),
                     const SizedBox(height: 24),
                     const Text(
@@ -875,7 +888,6 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                         fontWeight: FontWeight.w900,
                         fontSize: 20,
                         letterSpacing: 2.5,
-                        color: Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -915,7 +927,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Expanded(child: Container(height: 1, color: Colors.grey.shade50)),
+                            Expanded(child: Container(height: 1, color: isDark ? Colors.white10 : Colors.grey.shade50)),
                             const SizedBox(width: 8),
                             const Text(
                               'CHOOSE 1',
@@ -937,9 +949,9 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                               margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.grey.shade100, width: 1.5),
+                                border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade100, width: 1.5),
                               ),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -969,8 +981,8 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
                                         ),
                                         const SizedBox(height: 4),
-                                        Text(c.program, style: const TextStyle(fontSize: 13, color: Colors.black87)),
-                                        Text('Level ${c.level}', style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                                        Text(c.program, style: const TextStyle(fontSize: 13)),
+                                        Text('Level ${c.level}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
                                         Text(c.academicYear, style: const TextStyle(fontSize: 13, color: Colors.blueAccent, fontWeight: FontWeight.w500)),
                                       ],
                                     ),
@@ -980,7 +992,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
                                     height: 28,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.grey.shade300, width: 2),
+                                      border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300, width: 2),
                                     ),
                                   ),
                                 ],
@@ -996,9 +1008,9 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 40),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFAFBFF),
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black26 : const Color(0xFFFAFBFF),
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
                 ),
                 child: const Column(
                   children: [
@@ -1023,7 +1035,7 @@ class _AdminPanelState extends State<AdminPanel> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white, 
+        color: Theme.of(context).cardColor,
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, -5))]
       ),
       child: ElevatedButton(

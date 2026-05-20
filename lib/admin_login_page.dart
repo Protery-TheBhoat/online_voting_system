@@ -10,7 +10,6 @@ class AdminLoginPage extends StatefulWidget {
 }
 
 class _AdminLoginPageState extends State<AdminLoginPage> {
-  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
   bool _isLoading = false;
@@ -18,24 +17,22 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
-    final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    if (username.isEmpty || password.isEmpty) {
-      _showSnackBar('Please fill in all fields', Colors.orange);
+    if (password.isEmpty) {
+      _showSnackBar('Please enter the admin password', Colors.orange);
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      final success = await _authService.adminLogin(username, password);
+      final success = await _authService.adminLogin(password);
       
       if (!mounted) return;
 
@@ -108,38 +105,18 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Authorized Administrative Access',
+                  'Authorized Access Only',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 48),
                 
                 TextField(
-                  controller: _usernameController,
-                  enabled: !_isLoading,
-                  decoration: InputDecoration(
-                    labelText: 'Admin Username',
-                    prefixIcon: const Icon(Icons.badge_outlined),
-                    filled: true,
-                    fillColor: const Color(0xFFF8F9FA),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: const BorderSide(color: Color(0xFF1A73E8), width: 2),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 18),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextField(
                   controller: _passwordController,
                   obscureText: !_isPasswordVisible,
                   enabled: !_isLoading,
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: 'Admin Password',
                     prefixIcon: const Icon(Icons.lock_outline_rounded),
                     filled: true,
                     fillColor: const Color(0xFFF8F9FA),
@@ -176,7 +153,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 const SizedBox(height: 24),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Back to Student Login', style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
+                  child: Text('Back to Login', style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),
